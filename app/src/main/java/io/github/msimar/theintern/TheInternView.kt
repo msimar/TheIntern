@@ -2,8 +2,11 @@ package io.github.msimar.theintern
 
 import android.animation.ValueAnimator
 import android.content.Context
-import android.graphics.*
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Paint
 import android.graphics.Paint.ANTI_ALIAS_FLAG
+import android.graphics.Rect
 import android.util.AttributeSet
 import android.view.View
 import android.view.animation.DecelerateInterpolator
@@ -49,14 +52,16 @@ class TheInternView : View {
   private val blackRect3 = Rect()
   private val blackRect4 = Rect()
 
-  private var textOrigin = 0f
   private var group1TextBaseLine = 0f
   private var group2TextBaseLine = 0f
   private var group3TextBaseLine = 0f
 
-  private lateinit var textRect: RectF
+  private lateinit var textRect: Rect
 
-  private var letterSpacing = 0f
+  private var textLeft = 0
+  private var textRight = 0
+  private var textTop = 0
+  private var textBottom = 0
 
   init {
 
@@ -64,7 +69,7 @@ class TheInternView : View {
 
     textRectPaint.style = Paint.Style.STROKE
     textRectPaint.strokeWidth = 8f
-    textRectPaint.color = Color.WHITE
+    textRectPaint.color = Color.YELLOW
 
     group1TextPaint.color = Color.WHITE
     group1TextPaint.textSize = 40f
@@ -77,7 +82,6 @@ class TheInternView : View {
     group3TextPaint.color = Color.WHITE
     group3TextPaint.textSize = 256f
     group3TextPaint.getTextBounds(group3Text, 0, group3Text.length, group3TextBounds)
-
 
     //group3TextWidth = group3TextBounds.width()
     group3TextWidth =
@@ -97,16 +101,21 @@ class TheInternView : View {
 
   override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
     super.onSizeChanged(w, h, oldw, oldh)
-    textOrigin = width / 2f - group3TextWidth / 2f
     group3TextBaseLine = height / 2f + group3TextHeight / 2f
     group2TextBaseLine = height / 2f + group3TextHeight / 2f
     group1TextBaseLine = height / 2f - group3TextHeight / 2f + group1TextBounds.height()
 
-    textRect = RectF(
-      width / 2f - group3TextWidth / 2f,
-      height / 2f - group3TextHeight,
-      group3TextBounds.right.toFloat() /* width / 2f + group3TextWidth / 2f */,
-      height / 2f + group3TextHeight
+    textLeft = width / 2 - group3TextWidth / 2 - group1TextWidth
+    textRight = width / 2 + group3TextWidth / 2
+
+    textTop = height / 2 - group3TextHeight
+    textBottom = height / 2 + group3TextHeight
+
+    textRect = Rect(
+      textLeft,
+      textTop,
+      textRight,
+      textBottom
     )
   }
 
@@ -119,32 +128,33 @@ class TheInternView : View {
     canvas?.drawRect(blackRect4, wavePaint)
 
     // L, T, R, B
-    //canvas?.drawRoundRect(textRect, 8f, 8f, textRectPaint)
+    canvas?.drawRect(textRect, textRectPaint)
 
     canvas?.drawText(
       group1Text,
-      textOrigin - group1TextWidth, group1TextBaseLine,
+      width / 2f - group3TextWidth / 2f - group1TextWidth, group1TextBaseLine,
       group1TextPaint
     )
 
     canvas?.drawText(
       group2Text,
-      textOrigin - group1TextWidth / 2 - group2TextWidth / 2, group2TextBaseLine,
+      width / 2f - group3TextWidth / 2f - group1TextWidth / 2 - group2TextWidth / 2,
+      group2TextBaseLine,
       group2TextPaint
     )
 
     canvas?.drawText(
       group3Text,
-      textOrigin, group3TextBaseLine,
+      width / 2f - group3TextWidth / 2f, group3TextBaseLine,
       group3TextPaint
     )
   }
 
   fun magic() {
     animate(1, 0, height)
-    animate(2, width, textOrigin.toInt(), 400)
-    animate(3, height, (height / 2f + group3TextHeight).toInt(), 400 * 2)
-    animate(4, width, group3TextBounds.right, 400 * 3)
+    animate(2, width, textLeft, 400)
+    animate(3, height, textBottom, 400 * 2)
+    animate(4, width, textRight, 400 * 3)
   }
 
   private fun animate(step: Int, start: Int, end: Int, startDelay: Long = 0) {
@@ -154,26 +164,31 @@ class TheInternView : View {
     animator.addUpdateListener { animation ->
       animatedValue = animation.animatedValue as Int
 
-      if (step == 1) {
-        blackRect1.left = 0
-        blackRect1.top = 0
-        blackRect1.right = textOrigin.toInt()
-        blackRect1.bottom = animatedValue
-      } else if (step == 2) {
-        blackRect2.left = animatedValue
-        blackRect2.top = 0
-        blackRect2.right = width
-        blackRect2.bottom = (height / 2f - group3TextHeight).toInt()
-      } else if (step == 3) {
-        blackRect3.left = textOrigin.toInt()
-        blackRect3.top = animatedValue
-        blackRect3.right = width
-        blackRect3.bottom = height
-      } else if (step == 4) {
-        blackRect4.left = animatedValue
-        blackRect4.top = (height / 2f - group3TextHeight).toInt()
-        blackRect4.right = width
-        blackRect4.bottom = (height / 2f + group3TextHeight).toInt()
+      when (step) {
+        1 -> {
+          blackRect1.left = 0
+          blackRect1.top = 0
+          blackRect1.right = textLeft
+          blackRect1.bottom = animatedValue
+        }
+        2 -> {
+          blackRect2.left = animatedValue
+          blackRect2.top = 0
+          blackRect2.right = width
+          blackRect2.bottom = textTop
+        }
+        3 -> {
+          blackRect3.left = textLeft
+          blackRect3.top = animatedValue
+          blackRect3.right = width
+          blackRect3.bottom = height
+        }
+        4 -> {
+          blackRect4.left = animatedValue
+          blackRect4.top = textTop
+          blackRect4.right = width
+          blackRect4.bottom = textBottom
+        }
       }
 
       invalidate()
