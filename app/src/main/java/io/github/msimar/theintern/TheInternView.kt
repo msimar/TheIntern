@@ -71,6 +71,8 @@ class TheInternView : View {
   private var textTop = 0
   private var textBottom = 0
 
+  private var group3TextOrigin = 0f
+
   private var animDirection: AnimDirection = AnimDirection.TOP_TO_BOTTOM
 
   init {
@@ -79,7 +81,7 @@ class TheInternView : View {
 
     textRectPaint.style = Paint.Style.STROKE
     textRectPaint.strokeWidth = 8f
-    textRectPaint.color = Color.BLACK
+    textRectPaint.color = Color.MAGENTA
 
     group1TextPaint.color = Color.WHITE
     group1TextPaint.textSize = 40f
@@ -116,9 +118,11 @@ class TheInternView : View {
     group2TextBaseLine = height / 2f + group3TextHeight / 2f
     group1TextBaseLine = height / 2f - group3TextHeight / 2f + group1TextBounds.height()
 
+    group3TextOrigin = width / 2f - group3TextWidth / 2f + group1TextWidth / 2
+
     // measure bounds of the group text
-    textLeft = width / 2 - group3TextWidth / 2 - group1TextWidth
-    textRight = width / 2 + group3TextWidth / 2
+    textLeft = width / 2 - group3TextWidth / 2 - group1TextWidth / 2
+    textRight = width / 2 + group3TextWidth / 2 + group1TextWidth / 2
 
     textTop = height / 2 - group3TextHeight
     textBottom = height / 2 + group3TextHeight
@@ -159,14 +163,14 @@ class TheInternView : View {
     // draw "The"
     canvas?.drawText(
       group1Text,
-      width / 2f - group3TextWidth / 2f - group1TextWidth, group1TextBaseLine,
+      group3TextOrigin - group1TextWidth, group1TextBaseLine,
       group1TextPaint
     )
 
     // draw "I"
     canvas?.drawText(
       group2Text,
-      width / 2f - group3TextWidth / 2f - group1TextWidth / 2 - group2TextWidth / 2,
+      group3TextOrigin - group1TextWidth / 2 - group2TextWidth / 2,
       group2TextBaseLine,
       group2TextPaint
     )
@@ -174,7 +178,7 @@ class TheInternView : View {
     // draw "NTERN"
     canvas?.drawText(
       group3Text,
-      width / 2f - group3TextWidth / 2f, group3TextBaseLine,
+      group3TextOrigin, group3TextBaseLine,
       group3TextPaint
     )
   }
