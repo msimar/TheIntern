@@ -3,11 +3,8 @@ package io.github.msimar.theintern
 import android.animation.Animator
 import android.animation.ValueAnimator
 import android.content.Context
-import android.graphics.Canvas
-import android.graphics.Color
-import android.graphics.Paint
+import android.graphics.*
 import android.graphics.Paint.ANTI_ALIAS_FLAG
-import android.graphics.Rect
 import android.support.v4.view.animation.FastOutSlowInInterpolator
 import android.util.AttributeSet
 import android.view.View
@@ -30,11 +27,13 @@ class TheInternView : View {
   )
 
   private val wavePaint: Paint = Paint(ANTI_ALIAS_FLAG)
-  private val textRectPaint: Paint = Paint()
+  private val textRectPaint: Paint = Paint(ANTI_ALIAS_FLAG)
 
-  private val group1TextPaint: Paint = Paint()
-  private val group2TextPaint: Paint = Paint()
-  private val group3TextPaint: Paint = Paint()
+  private val group1TextPaint: Paint = Paint(ANTI_ALIAS_FLAG)
+  private val group2TextPaint: Paint = Paint(ANTI_ALIAS_FLAG)
+  private val group3TextPaint: Paint = Paint(ANTI_ALIAS_FLAG)
+
+  private val bucklePaint: Paint = Paint(ANTI_ALIAS_FLAG)
 
   private val group1Text = "THE"
   private val group2Text = "I"
@@ -66,6 +65,14 @@ class TheInternView : View {
 
   private lateinit var textRect: Rect
 
+  private lateinit var buckleRectLeft: Rect
+  private lateinit var buckleRectRight: Rect
+
+  private val bucklePathLeft = Path()
+  private val bucklePathRight = Path()
+  private val buckleWidth = 20f
+  private val buckleHeight = 10f
+
   private var textLeft = 0
   private var textRight = 0
   private var textTop = 0
@@ -80,8 +87,16 @@ class TheInternView : View {
     wavePaint.color = Color.WHITE
 
     textRectPaint.style = Paint.Style.STROKE
-    textRectPaint.strokeWidth = 8f
+    textRectPaint.strokeWidth = 12f
+    //textRectPaint.strokeCap = Paint.Cap.ROUND
+    //textRectPaint.strokeJoin = Paint.Join.ROUND
     textRectPaint.color = Color.MAGENTA
+
+    bucklePaint.style = Paint.Style.STROKE
+    bucklePaint.strokeWidth = 12f
+    bucklePaint.strokeCap = Paint.Cap.BUTT
+    bucklePaint.strokeJoin = Paint.Join.ROUND
+    bucklePaint.color = Color.BLACK
 
     group1TextPaint.color = Color.WHITE
     group1TextPaint.textSize = 40f
@@ -134,6 +149,51 @@ class TheInternView : View {
       textRight,
       textBottom
     )
+
+    val blockWidth = textRight - textLeft
+    val blockWidthThird = blockWidth / 3
+
+    // start from bottom right corner
+    bucklePathLeft.moveTo((textLeft + blockWidthThird / 2 + buckleWidth).toFloat(), textTop.toFloat())
+    // line to right to bottom left corner
+    bucklePathLeft.lineTo((textLeft + blockWidthThird / 2).toFloat(), textTop.toFloat())
+    // curve from bottom left to top left corner
+    val leftArcRectF1 = RectF(
+      (textLeft + blockWidthThird / 2).toFloat() - buckleWidth, textTop.toFloat() - buckleHeight,
+      (textLeft + blockWidthThird / 2).toFloat(), (textTop).toFloat() + buckleHeight
+    )
+    bucklePathLeft.arcTo(leftArcRectF1, 180f, 90f)
+    // line to top left corner to top right corner
+    bucklePathLeft.lineTo((textLeft + blockWidthThird / 2).toFloat(), (textTop - buckleHeight).toFloat())
+    // curve from top right corner to bottom right corner
+    val rightArcRectF1 = RectF(
+      (textLeft + blockWidthThird / 2).toFloat() + buckleWidth, textTop.toFloat() - buckleHeight,
+      (textLeft + blockWidthThird / 2).toFloat() + 2 * buckleWidth, (textTop).toFloat() + buckleHeight
+    )
+    bucklePathLeft.arcTo(rightArcRectF1, 270f, 90f)
+    // finally close the path
+    bucklePathLeft.close()
+
+    // start from bottom right corner
+    bucklePathRight.moveTo((textRight - blockWidthThird / 2 + buckleWidth).toFloat(), textTop.toFloat())
+    // line to right to bottom left corner
+    bucklePathRight.lineTo((textRight - blockWidthThird / 2).toFloat(), textTop.toFloat())
+    // curve from bottom left to top left corner
+    val leftArcRectF2 = RectF(
+      (textRight - blockWidthThird / 2).toFloat() - buckleWidth, textTop.toFloat() - buckleHeight,
+      (textRight - blockWidthThird / 2).toFloat(), (textTop).toFloat() + buckleHeight
+    )
+    bucklePathRight.arcTo(leftArcRectF2, 180f, 90f)
+    // line to top left corner to top right corner
+    bucklePathRight.lineTo((textRight - blockWidthThird / 2).toFloat(), (textTop - buckleHeight).toFloat())
+    // curve from top right corner to bottom right corner
+    val rightArcRectF2 = RectF(
+      (textRight - blockWidthThird / 2).toFloat() + buckleWidth, textTop.toFloat() - buckleHeight,
+      (textRight - blockWidthThird / 2).toFloat() + 2 * buckleWidth, (textTop).toFloat() + buckleHeight
+    )
+    bucklePathRight.arcTo(rightArcRectF2, 270f, 90f)
+    // finally close the path
+    bucklePathRight.close()
   }
 
   override fun draw(canvas: Canvas?) {
@@ -154,6 +214,9 @@ class TheInternView : View {
         canvas?.drawRect(blackRect2, wavePaint)
         canvas?.drawRect(blackRect3, wavePaint)
         canvas?.drawRect(blackRect4, wavePaint)
+
+        canvas?.drawPath(bucklePathLeft, bucklePaint)
+        canvas?.drawPath(bucklePathRight, bucklePaint)
       }
     }
 
