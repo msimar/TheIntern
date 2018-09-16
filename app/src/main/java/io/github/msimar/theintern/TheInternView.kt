@@ -34,6 +34,7 @@ class TheInternView : View {
   private val group3TextPaint: Paint = Paint(ANTI_ALIAS_FLAG)
 
   private val bucklePaint: Paint = Paint(ANTI_ALIAS_FLAG)
+  private val centerBucklePaint: Paint = Paint(ANTI_ALIAS_FLAG)
 
   private val group1Text = "THE"
   private val group2Text = "I"
@@ -65,13 +66,15 @@ class TheInternView : View {
 
   private lateinit var textRect: Rect
 
-  private lateinit var buckleRectLeft: Rect
-  private lateinit var buckleRectRight: Rect
-
   private val bucklePathLeft = Path()
   private val bucklePathRight = Path()
-  private val buckleWidth = 20f
-  private val buckleHeight = 10f
+  private val bucklePathCenter = Path()
+
+  private val buckleWidth = 80f.dp
+  private val buckleHeight = 40f.dp
+
+  private val centerBuckleWidth = 3 * buckleWidth
+  private val centerBuckleHeight = 2 * buckleHeight
 
   private var textLeft = 0
   private var textRight = 0
@@ -86,28 +89,34 @@ class TheInternView : View {
 
     wavePaint.color = Color.WHITE
 
-    textRectPaint.style = Paint.Style.STROKE
-    textRectPaint.strokeWidth = 12f
-    //textRectPaint.strokeCap = Paint.Cap.ROUND
-    //textRectPaint.strokeJoin = Paint.Join.ROUND
+    textRectPaint.style = Paint.Style.FILL
+    textRectPaint.strokeWidth = 8f.dp
+    textRectPaint.strokeCap = Paint.Cap.ROUND
+    textRectPaint.strokeJoin = Paint.Join.ROUND
     textRectPaint.color = Color.MAGENTA
 
-    bucklePaint.style = Paint.Style.STROKE
-    bucklePaint.strokeWidth = 12f
+    bucklePaint.style = Paint.Style.FILL_AND_STROKE
+    bucklePaint.strokeWidth = 16f.dp
     bucklePaint.strokeCap = Paint.Cap.BUTT
     bucklePaint.strokeJoin = Paint.Join.ROUND
     bucklePaint.color = Color.BLACK
 
+    centerBucklePaint.style = Paint.Style.STROKE
+    centerBucklePaint.strokeWidth = 32f.dp
+    centerBucklePaint.strokeCap = Paint.Cap.BUTT
+    centerBucklePaint.strokeJoin = Paint.Join.ROUND
+    centerBucklePaint.color = Color.BLACK
+
     group1TextPaint.color = Color.WHITE
-    group1TextPaint.textSize = 40f
+    group1TextPaint.textSize = 80f.dp
     group1TextPaint.getTextBounds(group1Text, 0, group1Text.length, group1TextBounds)
 
     group2TextPaint.color = Color.WHITE
-    group2TextPaint.textSize = 200f
+    group2TextPaint.textSize = 400f.dp
     group2TextPaint.getTextBounds(group2Text, 0, group2Text.length, group2TextBounds)
 
     group3TextPaint.color = Color.WHITE
-    group3TextPaint.textSize = 256f
+    group3TextPaint.textSize = 512f.dp
     group3TextPaint.getTextBounds(group3Text, 0, group3Text.length, group3TextBounds)
 
     //group3TextWidth = group3TextBounds.width()
@@ -151,49 +160,74 @@ class TheInternView : View {
     )
 
     val blockWidth = textRight - textLeft
-    val blockWidthThird = blockWidth / 3
+    val blockWidthFourth = blockWidth / 4
+
+    val centerBuckleCenter = textLeft + blockWidth / 2f
 
     // start from bottom right corner
-    bucklePathLeft.moveTo((textLeft + blockWidthThird / 2 + buckleWidth).toFloat(), textTop.toFloat())
+    bucklePathCenter.moveTo(centerBuckleCenter, textTop.toFloat())
     // line to right to bottom left corner
-    bucklePathLeft.lineTo((textLeft + blockWidthThird / 2).toFloat(), textTop.toFloat())
+    bucklePathCenter.lineTo((textLeft + blockWidth / 2f - centerBuckleWidth), textTop.toFloat())
+    // curve from bottom left to top left corner
+    val leftArcRectF3 = RectF(
+      centerBuckleCenter - centerBuckleWidth, textTop.toFloat() - centerBuckleHeight,
+      centerBuckleCenter, (textTop).toFloat()
+    )
+    bucklePathCenter.arcTo(leftArcRectF3, 180f, 90f)
+    // curve from top right corner to bottom right corner
+    val rightArcRectF3 = RectF(
+      centerBuckleCenter, textTop.toFloat() - centerBuckleHeight,
+      centerBuckleCenter + centerBuckleWidth, (textTop).toFloat()
+    )
+    bucklePathCenter.arcTo(rightArcRectF3, 270f, 90f)
+    bucklePathCenter.lineTo(centerBuckleCenter  + centerBuckleWidth, textTop.toFloat())
+    // finally close the path
+    bucklePathCenter.close()
+
+
+    val buckleLeftCenter = textLeft + blockWidthFourth / 2f
+
+    // start from bottom right corner
+    bucklePathLeft.moveTo(buckleLeftCenter, textTop.toFloat())
+    // line to right to bottom left corner
+    bucklePathLeft.lineTo((buckleLeftCenter - buckleWidth), textTop.toFloat())
     // curve from bottom left to top left corner
     val leftArcRectF1 = RectF(
-      (textLeft + blockWidthThird / 2).toFloat() - buckleWidth, textTop.toFloat() - buckleHeight,
-      (textLeft + blockWidthThird / 2).toFloat(), (textTop).toFloat() + buckleHeight
+      buckleLeftCenter - buckleWidth, textTop.toFloat() - buckleHeight,
+      buckleLeftCenter, (textTop).toFloat()
     )
     bucklePathLeft.arcTo(leftArcRectF1, 180f, 90f)
-    // line to top left corner to top right corner
-    bucklePathLeft.lineTo((textLeft + blockWidthThird / 2).toFloat(), (textTop - buckleHeight).toFloat())
     // curve from top right corner to bottom right corner
     val rightArcRectF1 = RectF(
-      (textLeft + blockWidthThird / 2).toFloat() + buckleWidth, textTop.toFloat() - buckleHeight,
-      (textLeft + blockWidthThird / 2).toFloat() + 2 * buckleWidth, (textTop).toFloat() + buckleHeight
+      buckleLeftCenter, textTop.toFloat() - buckleHeight,
+      buckleLeftCenter + buckleWidth, (textTop).toFloat()
     )
     bucklePathLeft.arcTo(rightArcRectF1, 270f, 90f)
+    bucklePathLeft.lineTo(buckleLeftCenter  + buckleWidth, textTop.toFloat())
     // finally close the path
     bucklePathLeft.close()
 
+    val buckleRightCenter = textRight - blockWidthFourth / 2f
+
     // start from bottom right corner
-    bucklePathRight.moveTo((textRight - blockWidthThird / 2 + buckleWidth).toFloat(), textTop.toFloat())
+    bucklePathLeft.moveTo(buckleRightCenter, textTop.toFloat())
     // line to right to bottom left corner
-    bucklePathRight.lineTo((textRight - blockWidthThird / 2).toFloat(), textTop.toFloat())
+    bucklePathLeft.lineTo((buckleRightCenter - buckleWidth), textTop.toFloat())
     // curve from bottom left to top left corner
     val leftArcRectF2 = RectF(
-      (textRight - blockWidthThird / 2).toFloat() - buckleWidth, textTop.toFloat() - buckleHeight,
-      (textRight - blockWidthThird / 2).toFloat(), (textTop).toFloat() + buckleHeight
+      buckleRightCenter - buckleWidth, textTop.toFloat() - buckleHeight,
+      buckleRightCenter, (textTop).toFloat()
     )
-    bucklePathRight.arcTo(leftArcRectF2, 180f, 90f)
-    // line to top left corner to top right corner
-    bucklePathRight.lineTo((textRight - blockWidthThird / 2).toFloat(), (textTop - buckleHeight).toFloat())
+    bucklePathLeft.arcTo(leftArcRectF2, 180f, 90f)
     // curve from top right corner to bottom right corner
     val rightArcRectF2 = RectF(
-      (textRight - blockWidthThird / 2).toFloat() + buckleWidth, textTop.toFloat() - buckleHeight,
-      (textRight - blockWidthThird / 2).toFloat() + 2 * buckleWidth, (textTop).toFloat() + buckleHeight
+      buckleRightCenter, textTop.toFloat() - buckleHeight,
+      buckleRightCenter + buckleWidth, (textTop).toFloat()
     )
-    bucklePathRight.arcTo(rightArcRectF2, 270f, 90f)
+    bucklePathLeft.arcTo(rightArcRectF2, 270f, 90f)
+    bucklePathLeft.lineTo(buckleRightCenter  + buckleWidth, textTop.toFloat())
     // finally close the path
-    bucklePathRight.close()
+    bucklePathLeft.close()
   }
 
   override fun draw(canvas: Canvas?) {
@@ -217,8 +251,15 @@ class TheInternView : View {
 
         canvas?.drawPath(bucklePathLeft, bucklePaint)
         canvas?.drawPath(bucklePathRight, bucklePaint)
+        canvas?.drawPath(bucklePathCenter, centerBucklePaint)
       }
     }
+
+    //canvas?.drawRect(leftArcRectF3, bucklePaint)
+    //canvas?.drawRect(rightArcRectF3, bucklePaint)
+
+    //canvas?.drawLine(width / 2f, 0f, width / 2f, height * 1f, textRectPaint);
+    //canvas?.drawLine(0f, height / 2f, width * 1f, height / 2f, textRectPaint);
 
     //draw rect to check if text bounds are correct, as we expected
     //canvas?.drawRect(textRect, textRectPaint)
